@@ -1,0 +1,88 @@
+-- Khởi tạo môi trường an toàn cho Executor 80% UNC
+local Player = game.Players.LocalPlayer
+local CoreGui = game:GetService("CoreGui")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
+-- Tìm NetworkEvent (Sử dụng phương thức tìm kiếm bền bỉ)
+local networkEvent = ReplicatedStorage:FindFirstChild("NetworkEvent", true)
+
+-- Danh sách vật phẩm và trạng thái bán riêng lẻ
+local SellStatus = {
+    ["Orb Blue"] = false,
+    ["Orb Red"] = false,
+    ["Orb Green"] = false,
+    ["Scrap Iron"] = false,
+    ["Banana Stem"] = false
+}
+
+-- Tạo GUI
+local ScreenGui = Instance.new("ScreenGui")
+local MainFrame = Instance.new("Frame")
+local UIListLayout = Instance.new("UIListLayout")
+local Title = Instance.new("TextLabel")
+
+ScreenGui.Parent = CoreGui
+MainFrame.Name = "MerchantPanel"
+MainFrame.Parent = ScreenGui
+MainFrame.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+MainFrame.Position = UDim2.new(0.8, 0, 0.3, 0)
+MainFrame.Size = UDim2.new(0, 180, 0, 250)
+MainFrame.Active = true
+MainFrame.Draggable = true
+
+Title.Parent = MainFrame
+Title.Text = "AUTO MERCHANT"
+Title.Size = UDim2.new(1, 0, 0, 35)
+Title.TextColor3 = Color3.fromRGB(0, 255, 127)
+Title.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
+Title.Font = Enum.Font.GothamBold
+
+UIListLayout.Parent = MainFrame
+UIListLayout.Padding = UDim.new(0, 5)
+UIListLayout.SortOrder = Enum.SortOrder.LayoutOrder
+
+-- Hàm tạo nút gạt cho từng Item
+local function CreateItemToggle(itemName)
+    local Btn = Instance.new("TextButton")
+    Btn.Name = itemName
+    Btn.Parent = MainFrame
+    Btn.Size = UDim2.new(0.9, 0, 0, 35)
+    Btn.Position = UDim2.new(0.05, 0, 0, 0)
+    Btn.BackgroundColor3 = Color3.fromRGB(150, 50, 50) -- Màu đỏ (Tắt)
+    Btn.Text = "Sell " .. itemName
+    Btn.TextColor3 = Color3.fromRGB(255, 255, 255)
+    Btn.Font = Enum.Font.Gotham
+    Btn.TextSize = 12
+
+    local Corner = Instance.new("UICorner")
+    Corner.CornerRadius = UDim.new(0, 6)
+    Corner.Parent = Btn
+
+    Btn.MouseButton1Click:Connect(function()
+        SellStatus[itemName] = not SellStatus[itemName]
+        
+        if SellStatus[itemName] then
+            Btn.BackgroundColor3 = Color3.fromRGB(50, 150, 50) -- Màu xanh (Bật)
+            -- Chạy vòng lặp riêng cho từng món hàng
+            task.spawn(function()
+                while SellStatus[itemName] and networkEvent do
+                    local args = {
+                        [1] = "fire",
+                        [3] = "economy",
+                        [4] = itemName,
+                        [5] = 1
+                    }
+                    networkEvent:FireServer(unpack(args))
+                    task.wait(0.1) -- Tốc độ tối ưu cho 80% UNC
+                end
+            end)
+        else
+            Btn.BackgroundColor3 = Color3.fromRGB(150, 50, 50)
+        end
+    end)
+end
+
+-- Khởi tạo các nút từ danh sách
+for name, _ in pairs(SellStatus) do
+    CreateItemToggle(name)
+end
