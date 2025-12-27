@@ -1,4 +1,3 @@
--- [[ MOBILE ECONOMY MANAGER - BY GEMINI ]]
 local player = game.Players.LocalPlayer
 local networkEvent = game:GetService("ReplicatedStorage"):WaitForChild("Modules"):WaitForChild("NetworkFramework"):WaitForChild("NetworkEvent")
 local coreGui = game:GetService("CoreGui")
@@ -19,10 +18,8 @@ local allItems = {
 local toggles = {}
 for _, item in pairs(allItems) do toggles[item] = false end
 
--- Giao diện ScreenGui
 local ScreenGui = Instance.new("ScreenGui", coreGui)
 
--- NÚT TRÒN MỞ MENU (Cho Mobile)
 local OpenBtn = Instance.new("TextButton", ScreenGui)
 OpenBtn.Size = UDim2.new(0, 45, 0, 45)
 OpenBtn.Position = UDim2.new(0, 10, 0.5, 0)
@@ -31,21 +28,18 @@ OpenBtn.Text = "SELL"
 OpenBtn.TextColor3 = Color3.new(1, 1, 1)
 OpenBtn.Font = Enum.Font.SourceSansBold
 OpenBtn.Active = true
-OpenBtn.Draggable = true -- Có thể kéo nút này quanh màn hình
-local Corner = Instance.new("UICorner", OpenBtn)
-Corner.CornerRadius = UDim.new(1, 0) -- Làm nút hình tròn
+OpenBtn.Draggable = true
+Instance.new("UICorner", OpenBtn).CornerRadius = UDim.new(1, 0)
 
--- MENU CHÍNH
 local Main = Instance.new("Frame", ScreenGui)
 Main.Size = UDim2.new(0, 240, 0, 320)
 Main.Position = UDim2.new(0.5, -120, 0.5, -160)
 Main.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
-Main.Visible = false -- Mặc định ẩn
+Main.Visible = false
 Main.Active = true
 Main.Draggable = true
 Instance.new("UICorner", Main)
 
--- Nút đóng Menu (Dấu X)
 local CloseX = Instance.new("TextButton", Main)
 CloseX.Size = UDim2.new(0, 25, 0, 25)
 CloseX.Position = UDim2.new(1, -30, 0, 5)
@@ -54,7 +48,6 @@ CloseX.BackgroundColor3 = Color3.fromRGB(200, 0, 0)
 CloseX.TextColor3 = Color3.new(1, 1, 1)
 Instance.new("UICorner", CloseX)
 
--- Thanh tìm kiếm
 local SearchBox = Instance.new("TextBox", Main)
 SearchBox.Size = UDim2.new(0.9, 0, 0, 30)
 SearchBox.Position = UDim2.new(0.05, 0, 0.12, 0)
@@ -64,17 +57,14 @@ SearchBox.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
 SearchBox.TextColor3 = Color3.new(1, 1, 1)
 Instance.new("UICorner", SearchBox)
 
--- Vùng cuộn
 local Scroll = Instance.new("ScrollingFrame", Main)
 Scroll.Size = UDim2.new(0.9, 0, 0.7, 0)
 Scroll.Position = UDim2.new(0.05, 0, 0.25, 0)
 Scroll.BackgroundTransparency = 1
 Scroll.CanvasSize = UDim2.new(0, 0, 0, #allItems * 35)
 Scroll.ScrollBarThickness = 4
-local Layout = Instance.new("UIListLayout", Scroll)
-Layout.Padding = UDim.new(0, 5)
+Instance.new("UIListLayout", Scroll).Padding = UDim.new(0, 5)
 
--- Logic ẩn/hiện
 OpenBtn.MouseButton1Click:Connect(function()
     Main.Visible = not Main.Visible
 end)
@@ -82,7 +72,6 @@ CloseX.MouseButton1Click:Connect(function()
     Main.Visible = false
 end)
 
--- Tạo các nút Toggle
 local buttons = {}
 for _, itemName in pairs(allItems) do
     local Btn = Instance.new("TextButton", Scroll)
@@ -101,7 +90,6 @@ for _, itemName in pairs(allItems) do
     end)
 end
 
--- Tìm kiếm
 SearchBox:GetPropertyChangedSignal("Text"):Connect(function()
     local query = SearchBox.Text:lower()
     for name, btn in pairs(buttons) do
@@ -109,7 +97,6 @@ SearchBox:GetPropertyChangedSignal("Text"):Connect(function()
     end
 end)
 
--- Vòng lặp bán đồ
 task.spawn(function()
     while true do
         for itemName, enabled in pairs(toggles) do
