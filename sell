@@ -1,24 +1,17 @@
--- [[ ULTIMATE ECONOMY MANAGER ]]
+-- [[ MOBILE ECONOMY MANAGER - BY GEMINI ]]
 local player = game.Players.LocalPlayer
 local networkEvent = game:GetService("ReplicatedStorage"):WaitForChild("Modules"):WaitForChild("NetworkFramework"):WaitForChild("NetworkEvent")
 local coreGui = game:GetService("CoreGui")
-local userInput = game:GetService("UserInputService")
 
--- Danh sách toàn bộ Item từ ảnh của bạn
 local allItems = {
-    -- Common & Uncommon
     "Bacon", "Sigma Boy", "Orb Blue", "Orb Red", "Orb Yellow", "Money", "Tissue", "Skibidi Sigma", "Orb Black",
-    -- Rare
     "Curse Diary", "Rot Banana", "Garbage bags", "Glass tube", "Bone Fragments", "Red Stone", "Bandage", 
     "Orb Purple", "Orb White", "Orb Sand", "Clown Mask", "Cookie", "Skull Mask", "Rust Blade",
-    -- Legendary
     "Super Shampoo", "Lollipop", "Banana Stem", "Green Cells", "Magic Evolution", "Naruto Manga", "Banana", 
     "Orb Snow", "Goku Manga", "Cursed Banana", "Iron Magic", "Book Witch", "Carrot", "Orb Magic", "Pipe Car", 
     "Ice Cream", "Scrap Iron", "Book Heaven", "Crowbar", "Cat", "Scarf", "Train ticket", "Rock", "Orb Dragon", "Cursed Womb",
-    -- Secret
     "Straw Hat", "Cyber Militech", "Chair", "Finger Sukuna", "Orb Atomic", "Cursed Egg", "Shadow Diary", "Hat Megumin",
     "Engine", "Tablet", "Orb Evolution", "Orb Broken", "Shadow Manga", "Lighter",
-    -- Event
     "Orb Quincy", "Squid Card", "Black Glasses", "Shoe", "Cyber Chip", "Rubber Band", "Sheath", "Magic Book",
     "Stick", "Orb Flame", "Star Black", "Spirit Curse", "Shiny String", "Orb Shadow", "Seaweed", "Antler", "Potion Slime"
 }
@@ -26,64 +19,89 @@ local allItems = {
 local toggles = {}
 for _, item in pairs(allItems) do toggles[item] = false end
 
--- Giao diện chính
+-- Giao diện ScreenGui
 local ScreenGui = Instance.new("ScreenGui", coreGui)
+
+-- NÚT TRÒN MỞ MENU (Cho Mobile)
+local OpenBtn = Instance.new("TextButton", ScreenGui)
+OpenBtn.Size = UDim2.new(0, 45, 0, 45)
+OpenBtn.Position = UDim2.new(0, 10, 0.5, 0)
+OpenBtn.BackgroundColor3 = Color3.fromRGB(0, 170, 255)
+OpenBtn.Text = "SELL"
+OpenBtn.TextColor3 = Color3.new(1, 1, 1)
+OpenBtn.Font = Enum.Font.SourceSansBold
+OpenBtn.Active = true
+OpenBtn.Draggable = true -- Có thể kéo nút này quanh màn hình
+local Corner = Instance.new("UICorner", OpenBtn)
+Corner.CornerRadius = UDim.new(1, 0) -- Làm nút hình tròn
+
+-- MENU CHÍNH
 local Main = Instance.new("Frame", ScreenGui)
-Main.Size = UDim2.new(0, 250, 0, 350)
-Main.Position = UDim2.new(0.5, -125, 0.5, -175)
+Main.Size = UDim2.new(0, 240, 0, 320)
+Main.Position = UDim2.new(0.5, -120, 0.5, -160)
 Main.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+Main.Visible = false -- Mặc định ẩn
 Main.Active = true
 Main.Draggable = true
 Instance.new("UICorner", Main)
 
--- Nút ẩn/hiện nhanh (Phím L)
-local isGuiVisible = true
-userInput.InputBegan:Connect(function(input, chat)
-    if chat then return end
-    if input.KeyCode == Enum.KeyCode.L then
-        isGuiVisible = not isGuiVisible
-        Main.Visible = isGuiVisible
-    end
-end)
+-- Nút đóng Menu (Dấu X)
+local CloseX = Instance.new("TextButton", Main)
+CloseX.Size = UDim2.new(0, 25, 0, 25)
+CloseX.Position = UDim2.new(1, -30, 0, 5)
+CloseX.Text = "X"
+CloseX.BackgroundColor3 = Color3.fromRGB(200, 0, 0)
+CloseX.TextColor3 = Color3.new(1, 1, 1)
+Instance.new("UICorner", CloseX)
 
 -- Thanh tìm kiếm
 local SearchBox = Instance.new("TextBox", Main)
 SearchBox.Size = UDim2.new(0.9, 0, 0, 30)
-SearchBox.Position = UDim2.new(0.05, 0, 0.05, 0)
-SearchBox.PlaceholderText = "Search Item..."
+SearchBox.Position = UDim2.new(0.05, 0, 0.12, 0)
+SearchBox.PlaceholderText = "Search item..."
 SearchBox.Text = ""
 SearchBox.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
 SearchBox.TextColor3 = Color3.new(1, 1, 1)
 Instance.new("UICorner", SearchBox)
 
--- Vùng cuộn chứa nút
+-- Vùng cuộn
 local Scroll = Instance.new("ScrollingFrame", Main)
-Scroll.Size = UDim2.new(0.9, 0, 0.75, 0)
-Scroll.Position = UDim2.new(0.05, 0, 0.18, 0)
+Scroll.Size = UDim2.new(0.9, 0, 0.7, 0)
+Scroll.Position = UDim2.new(0.05, 0, 0.25, 0)
 Scroll.BackgroundTransparency = 1
 Scroll.CanvasSize = UDim2.new(0, 0, 0, #allItems * 35)
+Scroll.ScrollBarThickness = 4
 local Layout = Instance.new("UIListLayout", Scroll)
 Layout.Padding = UDim.new(0, 5)
 
--- Hàm tạo nút
+-- Logic ẩn/hiện
+OpenBtn.MouseButton1Click:Connect(function()
+    Main.Visible = not Main.Visible
+end)
+CloseX.MouseButton1Click:Connect(function()
+    Main.Visible = false
+end)
+
+-- Tạo các nút Toggle
 local buttons = {}
 for _, itemName in pairs(allItems) do
     local Btn = Instance.new("TextButton", Scroll)
     Btn.Size = UDim2.new(1, -10, 0, 30)
     Btn.Text = itemName .. ": OFF"
-    Btn.BackgroundColor3 = Color3.fromRGB(150, 50, 50)
+    Btn.BackgroundColor3 = Color3.fromRGB(120, 0, 0)
     Btn.TextColor3 = Color3.new(1, 1, 1)
+    Btn.TextSize = 12
     Instance.new("UICorner", Btn)
     buttons[itemName] = Btn
 
     Btn.MouseButton1Click:Connect(function()
         toggles[itemName] = not toggles[itemName]
         Btn.Text = itemName .. ": " .. (toggles[itemName] and "ON" or "OFF")
-        Btn.BackgroundColor3 = toggles[itemName] and Color3.fromRGB(50, 150, 50) or Color3.fromRGB(150, 50, 50)
+        Btn.BackgroundColor3 = toggles[itemName] and Color3.fromRGB(0, 120, 0) or Color3.fromRGB(120, 0, 0)
     end)
 end
 
--- Logic tìm kiếm
+-- Tìm kiếm
 SearchBox:GetPropertyChangedSignal("Text"):Connect(function()
     local query = SearchBox.Text:lower()
     for name, btn in pairs(buttons) do
@@ -102,5 +120,3 @@ task.spawn(function()
         task.wait(0.3)
     end
 end)
-
-print("Legend: Phím 'L' để Ẩn/Hiện Menu. Chúc bạn farm vui vẻ!")
